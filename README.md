@@ -1,12 +1,12 @@
 # Pain-Portraits by Annabella Riley
 # Minimum vital server implementation provided by Hyung-Chul Lee (vital@snu.ac.kr)
-
+-----------------------------------------------------------------------
 Please download nodejs server (LTS version) from https://nodejs.org
 In the folder containing minimum_vitalserver.js, run "npm install"
------------------------------------------------------------------------
+
 To run tsParticle animations seeded with my pre-recorded vital data,
   execute "node minimum_vitalserver.js"
------------------------------------------------------------------------
+
 To seed animations with your own live data in real-time,
   download VitalRecorder at https://vitaldb.net/vital-recorder/
   set up a hardware connection with your patient monitor

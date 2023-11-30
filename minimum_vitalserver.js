@@ -19,32 +19,50 @@ const emitRow = require('./csvData');
 
 app.use(express.static('public'));
 
+const isDebugMode = false;
+
 app.get('/', (req, res) => {
-    res.send(`<script src="/socket.io/socket.io.js"></script>
-            <link rel='stylesheet' href='particles.css'>
-            <link rel="stylesheet" href="/styles.css">
-            <body>
-                <div id="fps"></div>
-                <div id="baseParticles1"></div>
-                <div id="baseParticles2"></div>
-                <div id="scribble"></div>     
-                <div id="miasma"></div>      
-                <div id="comet"></div>      
-                <div class="dataContainer" id="annabella">
-                    <div id="myPLETH" class="flexItem separator pleth">PLETH: ---</div>
-                    <div id="myHR" class="flexItem separator hr">HR: ---</div>
-                    <div id="myPLETH_SPO2" class="flexItem separator plethspo2">PLETH_SPO2: ---</div>
-                    <div id="myPLETH_HR" class="flexItem plethhr">PLETH_HR: ---</div>
-                </div> 
-                <div class="dataContainer offset" id="user">
-                    <div id="PLETH" class="flexItem separator pleth">PLETH: ---</div>
-                    <div id="HR" class="flexItem separator hr">HR: ---</div>
-                    <div id="PLETH_SPO2" class="flexItem separator plethspo2">PLETH_SPO2: ---</div>
-                    <div id="PLETH_HR" class="flexItem plethhr">PLETH_HR: ---</div>
-                </div> 
-            </body>
-            <script src="https://cdn.jsdelivr.net/npm/tsparticles@1.29.0/dist/tsparticles.min.js"></script>
-            <script src="logic.js"></script>`
+    res.send(`
+        <script src="/socket.io/socket.io.js"></script>
+        <link rel="stylesheet" href="/styles.css">
+        <body>
+            <button id='modeButton' onclick='changeMode()' style='display: ${isDebugMode ? 'block' : 'none'}'>live</button>
+
+            <div id="fps"></div>
+            <div id="base1"></div>
+            <div id="base2"></div>
+            <div id="scribble"></div>     
+            <div id="miasma"></div>      
+            <div id="comet"></div>
+      
+            <div class="dataContainer" id="annabella">
+                <div id="myPLETH" class="flexItem separator pleth">PLETH: ---</div>
+                <div id="myHR" class="flexItem separator hr">HR: ---</div>
+                <div id="myPLETH_SPO2" class="flexItem separator plethspo2">PLETH_SPO2: ---</div>
+                <div id="myPLETH_HR" class="flexItem plethhr">PLETH_HR: ---</div>
+            </div> 
+
+            <div class="dataContainer offset" id="user">
+                <div id="PLETH" class="flexItem separator pleth">PLETH: ---</div>
+                <div id="HR" class="flexItem separator hr">HR: ---</div>
+                <div id="PLETH_SPO2" class="flexItem separator plethspo2">PLETH_SPO2: ---</div>
+                <div id="PLETH_HR" class="flexItem plethhr">PLETH_HR: ---</div>
+            </div>
+        </body>
+        <script>
+            var mode = 'live';
+            var modes = ['live', 'ultra low', 'low', 'medium', 'high'];
+
+            function changeMode() {
+                button = document.getElementById('modeButton');
+                prevMode = button.innerHTML;
+                mode = modes[(modes.indexOf(prevMode) + 1) % modes.length];
+                button.innerHTML = mode;
+            }
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/tsparticles@1.29.0/dist/tsparticles.min.js"></script>
+        <script src="logic.js"></script>
+        `
     );
 });
 

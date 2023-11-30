@@ -1,11 +1,41 @@
 const trackNames = ['PLETH', 'HR', 'PLETH_SPO2', 'PLETH_HR'];
-var isLive = false;
 var liveData = { Time: "137.58", PLETH: "7.28", HR: "64.907364", PLETH_SPO2: "100", PLETH_HR: "64.907364", SPI: "0", SPV: "0", PPV: "0" };
+var isLive = false;
 
+//debug data
+const modeData = {
+    'ultra low': {
+        PLETH: "0",
+        HR: "45",
+        PLETH_SPO2: "110",
+        PLETH_HR: "45",
+    },
+    'low': {
+        PLETH: "0",
+        HR: "65",
+        PLETH_SPO2: "100",
+        PLETH_HR: "65",
+    },
+    'medium': {
+        PLETH: "0",
+        HR: "85",
+        PLETH_SPO2: "95",
+        PLETH_HR: "85",
+    },
+    'high': {
+        PLETH: "0",
+        HR: "105",
+        PLETH_SPO2: "90",
+        PLETH_HR: "105",
+    },
+}
+
+//format data to 2 dec pl
 function format(value) {
    return (Number(parseFloat(value))).toFixed(2);
 }
 
+//handle live incoming data
 io().on('send_data', (data) => {
     var rooms = data['rooms'];
     var trks = rooms[0]['trks'];
@@ -30,6 +60,7 @@ io().on('send_data', (data) => {
                     }
                 }
             }
+
             //format data
             if (trackName === 'PLETH') {
                 trackValue = trackValue.split(',')[0];
@@ -47,24 +78,31 @@ io().on('send_data', (data) => {
     }
 });
 
+//handle auto csv data
 io().on('csv_data', (data) => {
     if (!isLive) {
-        liveData = data;
+        var mode = document.getElementById('modeButton').innerHTML;
+        if (mode === 'live') {
+            liveData = data;
+        } else {
+            liveData = modeData[mode];
+        }
     }
 
     var trackValue;
     for (const trackName of trackNames) {
-        trackValue = data[trackName];
+        trackValue = liveData[trackName];
 
         //format data
         trackValue = format(trackValue);
         document.getElementById('my' + trackName).innerHTML = trackName + ': ' + trackValue;
     }
 });
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 var scribbleContainer;
-var baseContainer1;
-var baseContainer2;
+var base1;
+var base2;
 var fpsContainer;
 var miasmaContainer;
 var cometContainer;
@@ -74,89 +112,135 @@ window.onload = function() {
 }
 
 async function init() {
-    baseContainer1 = await tsParticles.load("baseParticles1", baseOptions);
-    baseContainer2 = await tsParticles.load("baseParticles2", baseOptions);
-    pause();
+    base1 = await tsParticles.load("base1", baseOptions);
+    base2 = await tsParticles.load("base2", baseOptions);
+    mobiusLoop(base1, base2, "baseEmitter", baseUpdate);
+
     fpsContainer = await tsParticles.load("fps", fpsScribble)//FIX
-    depContinuous();
+    continuous(fpsContainer, fpsUpdate);
     scribbleContainer = await tsParticles.load("scribble", scribble);
-    continuous();
+    continuous(scribbleContainer, scribbleUpdate);
     miasmaContainer = await tsParticles.load("miasma", miasma);
     cometContainer = await tsParticles.load("comet", basest);
 }
 
-function getRandomColour() {
-    var letters = '0123456789ABCDEF';
-    var color = '#';
-    for (var i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-}
+function mobiusLoop(animationInstance1, animationInstance2, emitterName, updateFunction) {
+    animationInstance1.pauseEmitter(emitterName);
 
-const depContinuous = () => {
-    fpsUpdate(fpsContainer);
-    fpsContainer.refresh();
-    setTimeout(depContinuous, (liveData['HR'] * 100));
-}
-
-function fpsUpdate(container) {
-    container.options.emitters.rate.delay.max = 300 - (liveData['HR'] * 2);
-    container.options.particles.color.animation.l.max = Math.max((liveData['HR'] * 2), 70);
-    container.options.particles.line_linked.triangles.opacity = (liveData['PLETH_HR'] / 100);
-
-    container.options.emitters.rate.quantity = (liveData['PLETH_HR'] / 10);
-    container.options.particles.line_linked.distance = (liveData['HR']) + 85;
-    if (isLive) {
-        container.options.particles.line_linked.triangles.color = "random";
-    } else { 
-        container.options.particles.line_linked.triangles.color = "#2e3854";
-    }
-}
-
-const continuous = () => {
-    scribbleUpdate(scribbleContainer);
-    scribbleContainer.refresh();
-    setTimeout(continuous, 2000);
-}
-
-function scribbleUpdate(container) {
-    container.options.particles.opacity.value = 1 - (liveData['PLETH_SPO2'] / 150) + (liveData['HR'] / 150)
-    container.options.particles.line_linked.distance = 20 + Math.pow((liveData['PLETH_HR'] - 50) / 50, 2) * 100;
-    container.options.particles.line_linked.opacity = 1 - (liveData['PLETH_HR'] / 300);
-    container.options.particles.line_linked.triangles.opacity = Math.abs(liveData['PLETH']) / 50;
-
-    container.options.emitters[0].rate.quantity = Math.min(Math.abs(liveData['PLETH']), 10);
-}
-
-const play = () => {
-    baseContainer2.pauseEmitter("baseEmitter");
-    //update values
-    baseUpdate(baseContainer1);
-    baseContainer1.refresh().then(() => {
-        baseContainer1.playEmitter("baseEmitter");
+    updateFunction(animationInstance2);
+    animationInstance2.refresh().then(() => {
+        animationInstance2.playEmitter(emitterName);
+        setTimeout(() => {mobiusLoop(animationInstance2, animationInstance1, emitterName, updateFunction)}, 2000);
     });
-    setTimeout(pause, 2000);
 }
 
-const pause = () => {
-    baseContainer1.pauseEmitter("baseEmitter");
-    //update values
-    baseUpdate(baseContainer2);
-    baseContainer2.refresh().then(() => {
-        baseContainer2.playEmitter("baseEmitter");
-    });
-    setTimeout(play, 2000);
+function continuous(animationInstance, updateFunction) {
+    updateFunction(animationInstance);
+    animationInstance.refresh();
+    setTimeout(() => {continuous(animationInstance, updateFunction)}, (liveData['HR'] * 50));
 }
+
+//////////////////////////////////////////////////
 
 function baseUpdate(container) {
     container.options.particles.opacity.animation.speed = liveData['HR']/20;
     container.options.particles.move.speed.max = (liveData['PLETH_HR'] - 40) * (1 - 0.5) / (130 - 40) + 0.5;
     container.options.particles.move.speed.min = ((liveData['PLETH_HR'] - 40) * (1 - 0.5) / (130 - 40) + 0.5) / 2;
-    //container.options.particles.opacity.value = liveData['HR'] / 100 + 0.1;
     container.options.particles.life.duration.min = liveData['HR'] / 10;
-    
 }
+
+const baseOptions = {
+    fpsLimit: 60,
+    zIndex: 0,
+    fullScreen: {
+        enable: true
+    },
+    particles: {
+        number: {
+          value: 0,
+          zIndex: 1
+        },
+        color: {
+            value: "#393942",
+            animation: {
+                enable: true,
+                speed: 100,
+                sync: true,
+                l: {
+                    enable: true,
+                    speed: 10,
+                    offset: { min: 40, max: 80 },
+                }
+            }
+        },
+        shape: {
+            type: "circle",
+        },
+        size: {
+            value: { min: 1, max: 6 },
+            animation: {
+                enable: true,
+                speed: 4,
+                minimumValue: 2,
+                sync: true
+            }
+        },
+        opacity: {
+            value: 1,
+            random: false,
+            animation: {
+                sync: true,
+                enable: true,
+                speed: 3, // TIE DONE
+                minimumValue: 0,
+            }
+        },
+        move: {
+            enable: true,
+            direction: "none",
+            speed: { min: 0.3, max: 7 }, // TIE
+            random: false,
+            straight: false,
+            size: true,
+            outModes: {
+              default: "destroy",
+            },
+        },
+        line_linked: {
+            enable: true,
+            distance: 15, // TIE
+            opacity: 0.3,
+            width: 0.5,
+          },
+        life: {
+            duration: {
+                sync: false,
+                value: { min: 2, max: 6 },  // TIE
+            },
+            count: 1,
+        },
+    },
+    emitters: {
+        name: "baseEmitter",
+        direction: "none",
+        rate: {
+          quantity: 2,  //TIE
+          delay: 0.08
+        },
+        shape: {
+            type: "circle"
+        },
+        size: {
+          width: 30,
+          height: 50
+        },
+        position: {
+          x: 65,
+          y: 40
+        },
+    },
+}
+
 
 
 const miasma = {
@@ -242,6 +326,15 @@ const miasma = {
         },
     },
     retina_detect: true
+}
+
+function scribbleUpdate(container) {
+    container.options.particles.opacity.value = 1 - (liveData['PLETH_SPO2'] / 150) + (liveData['HR'] / 150)
+    container.options.particles.line_linked.distance = 20 + Math.pow((liveData['PLETH_HR'] - 50) / 50, 2) * 100;
+    container.options.particles.line_linked.opacity = 1 - (liveData['PLETH_HR'] / 300);
+    container.options.particles.line_linked.triangles.opacity = Math.abs(liveData['PLETH']) / 50;
+
+    container.options.emitters[0].rate.quantity = Math.min(Math.abs(liveData['PLETH']), 10);
 }
 
 const scribble = {
@@ -360,6 +453,20 @@ const scribble = {
     ]
 }
 
+function fpsUpdate(container) {
+    container.options.emitters.rate.delay.max = 300 - (liveData['HR'] * 2);
+    container.options.particles.color.animation.l.max = Math.max((liveData['HR'] * 2), 70);
+    container.options.particles.line_linked.triangles.opacity = (liveData['PLETH_HR'] / 100);
+
+    container.options.emitters.rate.quantity = (liveData['PLETH_HR'] / 10);
+    container.options.particles.line_linked.distance = (liveData['HR']) + 85;
+    if (isLive) {
+        container.options.particles.line_linked.triangles.color = "random";
+    } else { 
+        container.options.particles.line_linked.triangles.color = "#2e3854";
+    }
+}
+
 const fpsScribble = {
     fullScreen: {
         enable: true
@@ -426,97 +533,7 @@ const fpsScribble = {
     },
 }
 
-const baseOptions = {
-    fpsLimit: 60,
-    zIndex: 0,
-    fullScreen: {
-        enable: true
-    },
-    particles: {
-        number: {
-          value: 0,
-          zIndex: 1
-        },
-        color: {
-            value: "#393942",
-            animation: {
-                enable: true,
-                speed: 100,
-                sync: true,
-                l: {
-                    enable: true,
-                    speed: 10,
-                    offset: { min: 40, max: 80 },
-                }
-            }
-        },
-        shape: {
-            type: "circle",
-        },
-        size: {
-            value: { min: 1, max: 6 },
-            animation: {
-                enable: true,
-                speed: 4,
-                minimumValue: 2,
-                sync: true
-            }
-        },
-        opacity: {
-            value: 1,
-            random: false,
-            animation: {
-                sync: true,
-                enable: true,
-                speed: 3, // TIE DONE
-                minimumValue: 0,
-            }
-        },
-        move: {
-            enable: true,
-            direction: "none",
-            speed: { min: 0.3, max: 7 }, // TIE
-            random: false,
-            straight: false,
-            size: true,
-            outModes: {
-              default: "destroy",
-            },
-        },
-        line_linked: {
-            enable: true,
-            distance: 15, // TIE
-            opacity: 0.3,
-            width: 0.5,
-          },
-        life: {
-            duration: {
-                sync: false,
-                value: { min: 2, max: 6 },  // TIE
-            },
-            count: 1,
-        },
-    },
-    emitters: {
-        name: "baseEmitter",
-        direction: "none",
-        rate: {
-          quantity: 2,  //TIE
-          delay: 0.08
-        },
-        shape: {
-            type: "circle"
-        },
-        size: {
-          width: 30,
-          height: 50
-        },
-        position: {
-          x: 65,
-          y: 40
-        },
-    },
-}
+
 
 const basest = {
     fpsLimit: 60,

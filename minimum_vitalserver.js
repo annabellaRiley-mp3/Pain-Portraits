@@ -61,7 +61,7 @@ app.get('/', (req, res) => {
             }
         </script>
         <script src="https://cdn.jsdelivr.net/npm/tsparticles@1.29.0/dist/tsparticles.min.js"></script>
-        <script src="logic.js"></script>
+        <script type="module" src="main.js"></script>
         `
     );
 });

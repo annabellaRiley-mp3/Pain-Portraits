@@ -19,7 +19,7 @@ const emitRow = require('./csvData');
 
 app.use(express.static('public'));
 
-const isDebugMode = false;
+const isDebugMode = true;
 
 app.get('/', (req, res) => {
     res.send(`
@@ -28,12 +28,18 @@ app.get('/', (req, res) => {
         <body>
             <button id='modeButton' onclick='changeMode()' style='display: ${isDebugMode ? 'block' : 'none'}'>live</button>
 
-            <div id="fps"></div>
+            <div class="blurFilter">
+                <div id="blur1"></div>
+                <div id="blur2"></div>
+            </div>
             <div id="base1"></div>
             <div id="base2"></div>
-            <div id="scribble"></div>     
-            <div id="miasma"></div>      
-            <div id="comet"></div>
+            <div id="layer1" label="scribble"></div>
+            <div class="opacityFilter">
+                <div id="layer2" label="comet"></div>
+            </div>
+            <div id="layer3" label="polygon"></div>
+            <div id="layer4" label-"burst"></div>      
       
             <div class="dataContainer" id="annabella">
                 <div id="myPLETH" class="flexItem separator pleth">PLETH: ---</div>
@@ -51,7 +57,7 @@ app.get('/', (req, res) => {
         </body>
         <script>
             var mode = 'live';
-            var modes = ['live', 'ultra low', 'low', 'medium', 'high'];
+            var modes = ['live', 'ultra low', 'low', 'medium', 'high', 'ultra high'];
 
             function changeMode() {
                 button = document.getElementById('modeButton');

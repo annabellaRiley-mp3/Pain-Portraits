@@ -87,3 +87,34 @@ body {
 #user > .plethhr {
     color: rgb(139, 191, 228);
 }
+
+#modeButton {
+    z-index: 1;
+}
+
+
+.blurFilter {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+
+    background-color: transparent;
+    filter: blur(40px);
+}
+
+.opacityFilter {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
+    background-color: transparent;
+    z-index: -5;
+
+    opacity: 0;
+    transition: opacity 1s ease;
+}

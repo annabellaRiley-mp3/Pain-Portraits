@@ -15,6 +15,7 @@ const io = require("socket.io")(server, {
     //maxHttpBufferSize: 1e8 // buffer size
 });
 const zlib = require('zlib');
+const opn = require('opn');
 const emitRow = require('./csvData');
 
 app.use(express.static('public'));
@@ -98,4 +99,5 @@ io.on('connection', (socket) => {
 
 server.listen(3000, () => {
   console.log('listening on *:3000');
+  opn('http://localhost:3000');
 });

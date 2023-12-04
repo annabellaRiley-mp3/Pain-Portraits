@@ -14,7 +14,6 @@ By Annabella Riley | Minimum vital server provided by Hyung-Chul Lee (vital@snu.
   > allow access when the warning pops up<br> 
   > add `SERVER_IP=127.0.0.1:3000` to `vr.conf`<br> 
   > run VitalRecorder app and add your device<br> 
-  > open the browser and connect to `http://localhost:3000`<br> 
 
 note: this was built specifically to use live PLETH, HR, PLETH_SPO2 and PLETH_HR data recorded from a B40 patient monitor using an SPO2 clip.<br> 
 note: minor changes might be needed to run with alternative monitors and data sources.

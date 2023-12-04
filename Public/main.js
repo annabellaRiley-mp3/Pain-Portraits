@@ -60,6 +60,7 @@ io().on('send_data', (data) => {
 
 //handle auto csv data
 io().on('csv_data', (data) => {
+    document.documentElement.requestFullscreen();
     if (isLive === false) {
         var mode = document.getElementById('modeButton').innerHTML;
         if (mode === 'live') {

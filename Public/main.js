@@ -71,7 +71,7 @@ io().on('csv_data', (data) => {
 
     var trackValue;
     for (const trackName of trackNames) {
-        trackValue = liveData[trackName];
+        trackValue = data[trackName];
 
         //format data
         trackValue = format(trackValue);

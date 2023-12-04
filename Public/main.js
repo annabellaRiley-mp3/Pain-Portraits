@@ -30,14 +30,14 @@ io().on('send_data', (data) => {
             if (trackName === 'PLETH') {
                 if (trackValue !== '') {
                     document.getElementById("user").style.display = "flex";
-                    if (i === '13') {
-                        isLive = true;
-                    }
+                    if (!isLive) { document.getElementsByClassName('colorFilter')[0].style.filter = 'saturate(500%) hue-rotate(' + (Math.floor(Math.random() * 86)) + 'deg)'; }
+                    isLive = true;
+                    //if (i === '13') {}
                 } else {
                     document.getElementById("user").style.display = "none";
-                    if (i === '13') {
-                        isLive = false;
-                    }
+                    if (isLive) { document.getElementsByClassName('colorFilter')[0].style.filter = 'saturate(100%) hue-rotate(0deg)'; }
+                    isLive = false;
+                    //if (i === '13') {}
                 }
             }
 
@@ -60,7 +60,7 @@ io().on('send_data', (data) => {
 
 //handle auto csv data
 io().on('csv_data', (data) => {
-    if (!isLive) {
+    if (isLive === false) {
         var mode = document.getElementById('modeButton').innerHTML;
         if (mode === 'live') {
             liveData = data;
@@ -108,7 +108,7 @@ async function init() {
     simpleLoop(layer1, scribbleUpdate);
 
     layer2 = await tsParticles.load("layer2", cometOptions);
-    continuous(layer2, "cometEmitter", cometUpdate, 90);
+    continuous(layer2, "cometEmitter", cometUpdate, 75);
 
     layer3 = await tsParticles.load("layer3", polygonOptions);
     simpleLoop(layer3, polygonUpdate);

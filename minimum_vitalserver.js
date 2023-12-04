@@ -19,7 +19,7 @@ const emitRow = require('./csvData');
 
 app.use(express.static('public'));
 
-const isDebugMode = true;
+const isDebugMode = false;
 
 app.get('/', (req, res) => {
     res.send(`
@@ -32,8 +32,10 @@ app.get('/', (req, res) => {
                 <div id="blur1"></div>
                 <div id="blur2"></div>
             </div>
-            <div id="base1"></div>
-            <div id="base2"></div>
+            <div class="colorFilter">
+                <div id="base1"></div>
+                <div id="base2"></div>
+            </div>
             <div id="layer1" label="scribble"></div>
             <div class="opacityFilter">
                 <div id="layer2" label="comet"></div>
